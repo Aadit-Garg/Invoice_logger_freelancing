@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { Plus, Trash2, ArrowLeft, Briefcase, ChevronRight, Download, FileSpreadsheet, LayoutDashboard, Clock, BarChart3, LogOut, Sun, Moon } from 'lucide-react';
+import { Plus, Trash2, ArrowLeft, Briefcase, ChevronRight, Download, FileSpreadsheet, LayoutDashboard, Clock, BarChart3, LogOut, Sun, Moon, Settings } from 'lucide-react';
 import TextareaAutosize from 'react-textarea-autosize';
 import { generateWorkLogPDF } from './generatePDF';
 import { BarChart, Bar, XAxis, YAxis, Tooltip as RechartsTooltip, ResponsiveContainer, PieChart, Pie, Cell } from 'recharts';
@@ -98,6 +98,24 @@ function App() {
   const [isExporting, setIsExporting] = useState(false);
   const [activeTab, setActiveTab] = useState('monthly'); // 'monthly' | 'pending' | 'metrics'
   const [pendingTasksSnapshot, setPendingTasksSnapshot] = useState([]);
+  const [installPrompt, setInstallPrompt] = useState(null);
+
+  useEffect(() => {
+    const handleBeforeInstall = (e) => {
+      e.preventDefault();
+      setInstallPrompt(e);
+    };
+    window.addEventListener('beforeinstallprompt', handleBeforeInstall);
+    return () => window.removeEventListener('beforeinstallprompt', handleBeforeInstall);
+  }, []);
+
+  const handleInstallPWA = async () => {
+    if (!installPrompt) return;
+    installPrompt.prompt();
+    const { outcome } = await installPrompt.userChoice;
+    console.log(`User response to install prompt: ${outcome}`);
+    setInstallPrompt(null);
+  };
   
   const [user, setUser] = useState(null);
   const [authChecking, setAuthChecking] = useState(true);
@@ -462,6 +480,12 @@ function App() {
           >
             <BarChart3 size={18} /> METRICS
           </button>
+          <button 
+            className={`tab ${activeTab === 'settings' ? 'active' : ''}`}
+            onClick={() => setActiveTab('settings')}
+          >
+            <Settings size={18} /> SETTINGS
+          </button>
           {hasFirebaseConfig && user && (
             <>
               <button 
@@ -588,6 +612,80 @@ function App() {
                     </PieChart>
                   </ResponsiveContainer>
                 </div>
+              </div>
+
+            </div>
+          </div>
+        )}
+
+        {activeTab === 'settings' && (
+          <div className="settings-view">
+            <div className="dashboard-header">
+              <h2>APP SETTINGS</h2>
+            </div>
+
+            <div className="graphs-grid" style={{display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(300px, 1fr))', gap: '2rem', marginTop: '1rem'}}>
+              
+              {/* Bento Card for PWA Capabilities */}
+              <div className="graph-card brutalist-card settings-card" style={{padding: '2rem'}}>
+                <h3 style={{marginBottom: '1rem'}}>Progressive Web App (PWA)</h3>
+                <p style={{color: 'var(--text-muted)', fontSize: '0.9rem', marginBottom: '1.5rem', lineHeight: '1.6'}}>
+                  This app is fully PWA-enabled! It features advanced offline service worker caching and can be installed as a standalone app on your desktop, iOS, or Android home screen.
+                </p>
+                <div style={{display: 'flex', flexDirection: 'column', gap: '1rem'}}>
+                  <div style={{display: 'flex', alignItems: 'center', gap: '10px'}}>
+                    <span style={{width: '10px', height: '10px', borderRadius: '50%', background: '#34c759', display: 'inline-block'}}></span>
+                    <span style={{fontSize: '0.85rem', fontWeight: 700, textTransform: 'uppercase', letterSpacing: '0.05em'}}>
+                      Offline Mode: Active (SW registered)
+                    </span>
+                  </div>
+                  {installPrompt ? (
+                    <button 
+                      className="btn-primary" 
+                      onClick={handleInstallPWA}
+                      style={{width: '100%', marginTop: '0.5rem'}}
+                    >
+                      INSTALL STANDALONE APP
+                    </button>
+                  ) : (
+                    <div style={{
+                      padding: '10px 14px', 
+                      background: 'rgba(52, 199, 89, 0.08)', 
+                      border: '1px solid #34c759', 
+                      borderRadius: '8px', 
+                      color: '#34c759', 
+                      fontSize: '0.82rem', 
+                      fontWeight: 600,
+                      textAlign: 'center'
+                    }}>
+                      ALREADY INSTALLED OR RUNNING STANDALONE
+                    </div>
+                  )}
+                </div>
+              </div>
+
+              {/* Bento Card for Brand & Logo Identity */}
+              <div className="graph-card brutalist-card settings-card" style={{padding: '2rem', display: 'flex', flexDirection: 'column', alignItems: 'center', textAlign: 'center'}}>
+                <h3 style={{width: '100%', textAlign: 'left', marginBottom: '1.5rem'}}>App Branding</h3>
+                <div style={{
+                  width: '120px',
+                  height: '120px',
+                  borderRadius: '24px',
+                  overflow: 'hidden',
+                  boxShadow: 'var(--shadow-md)',
+                  border: '1px solid var(--glass-border)',
+                  marginBottom: '1.25rem',
+                  display: 'flex',
+                  alignItems: 'center',
+                  justifyContent: 'center',
+                  background: '#000'
+                }}>
+                  <img src="/logo.png" alt="App Logo" style={{width: '100%', height: '100%', objectFit: 'cover'}} />
+                </div>
+                <h4 style={{fontSize: '1rem', fontWeight: 800, marginBottom: '0.25rem'}}>ANTIGRAVITY INVOICE LOGGER</h4>
+                <p style={{fontSize: '0.8rem', color: 'var(--text-muted)', textTransform: 'uppercase', fontWeight: 700, letterSpacing: '0.05em'}}>
+                  Premium Apple-Inspired Edition
+                </p>
               </div>
 
             </div>
