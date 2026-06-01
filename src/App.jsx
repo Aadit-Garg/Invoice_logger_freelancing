@@ -457,25 +457,10 @@ function App() {
             <>
               <button 
                 className="tab"
+                style={{ marginLeft: 'auto' }}
                 onClick={() => setTheme(theme === 'light' ? 'dark' : 'light')}
               >
                 {theme === 'light' ? <Moon size={18} /> : <Sun size={18} />} THEME
-              </button>
-              <button 
-                className="tab"
-                style={{ marginLeft: 'auto' }}
-                onClick={async () => {
-                  try {
-                    const userDocRef = doc(db, 'users', user.uid);
-                    await setDoc(userDocRef, { logs: defaultData });
-                    setLogs(defaultData);
-                    alert("Success! Your original data was pushed to the cloud.");
-                  } catch (e) {
-                    alert("Error syncing data: " + e.message);
-                  }
-                }}
-              >
-                <Download size={18} style={{ transform: 'rotate(180deg)' }} /> FORCE SYNC DATA
               </button>
               <button 
                 className="tab"
