@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { signInWithEmailAndPassword, createUserWithEmailAndPassword } from 'firebase/auth';
+import { signInWithEmailAndPassword, createUserWithEmailAndPassword, GoogleAuthProvider, signInWithPopup } from 'firebase/auth';
 import { auth } from './firebase';
 import './App.css';
 
@@ -25,6 +25,24 @@ export default function Login() {
       } else {
         await createUserWithEmailAndPassword(auth, email, password);
       }
+    } catch (err) {
+      console.error(err);
+      setError(err.message);
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  const handleGoogleSignIn = async () => {
+    if (!auth) {
+      setError("Firebase is not configured.");
+      return;
+    }
+    setError('');
+    setLoading(true);
+    const provider = new GoogleAuthProvider();
+    try {
+      await signInWithPopup(auth, provider);
     } catch (err) {
       console.error(err);
       setError(err.message);
@@ -78,6 +96,18 @@ export default function Login() {
             {loading ? 'PROCESSING...' : (isLogin ? 'ACCESS HQ' : 'CREATE ACCOUNT')}
           </button>
         </form>
+
+        <div style={{ marginTop: '1rem' }}>
+          <button 
+            type="button" 
+            className="btn-secondary" 
+            style={{ width: '100%', padding: '1rem', fontSize: '1.1rem', backgroundColor: '#fef08a', color: '#854d0e', border: '2px solid #000' }}
+            disabled={loading}
+            onClick={handleGoogleSignIn}
+          >
+            CONTINUE WITH GOOGLE
+          </button>
+        </div>
 
         <div style={{ marginTop: '1.5rem', textAlign: 'center' }}>
           <button 

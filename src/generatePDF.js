@@ -31,6 +31,7 @@ const GRAY = [100, 100, 100];
 const LIGHT_BG = [245, 245, 245];
 const WHITE = [255, 255, 255];
 const BORDER = [200, 200, 200];
+const ACCENT = [99, 102, 241];
 
 /* ══════════════════════════════════════════
    Main export function
@@ -45,7 +46,7 @@ export function generateWorkLogPDF(log) {
   /* ── HEADER ── */
   doc.setFont('helvetica', 'bold');
   doc.setFontSize(22);
-  doc.setTextColor(...BLACK);
+  doc.setTextColor(...ACCENT);
   doc.text('WORK LOG', margin, y + 7);
 
   doc.setFont('helvetica', 'normal');
@@ -108,9 +109,9 @@ export function generateWorkLogPDF(log) {
 
   const drawSummaryBox = (x, label, value, inverted) => {
     if (inverted) {
-      doc.setFillColor(...BLACK);
+      doc.setFillColor(...ACCENT);
       doc.rect(x, y, boxW, boxH, 'F');
-      doc.setTextColor(180, 180, 180);
+      doc.setTextColor(220, 220, 255);
     } else {
       doc.setDrawColor(...BORDER);
       doc.setFillColor(...WHITE);
@@ -177,8 +178,8 @@ export function generateWorkLogPDF(log) {
     doc.setLineWidth(0.1);
     doc.rect(margin, y - 4, contentW, 8, 'F');
     // Left accent
-    doc.setFillColor(...BLACK);
-    doc.rect(margin, y - 4, 1.2, 8, 'F');
+    doc.setFillColor(...ACCENT);
+    doc.rect(margin, y - 4, 1.5, 8, 'F');
 
     doc.setFont('helvetica', 'bold');
     doc.setFontSize(9);
@@ -231,11 +232,11 @@ export function generateWorkLogPDF(log) {
         overflow: 'linebreak',
       },
       headStyles: {
-        fillColor: false,
-        textColor: GRAY,
+        fillColor: ACCENT,
+        textColor: WHITE,
         fontStyle: 'bold',
         fontSize: 7.5,
-        cellPadding: { top: 2, bottom: 3, left: 2, right: 2 },
+        cellPadding: { top: 3, bottom: 3, left: 2, right: 2 },
       },
       columnStyles: {
         0: { cellWidth: 18 },       // Date
@@ -244,14 +245,6 @@ export function generateWorkLogPDF(log) {
         3: { cellWidth: 38 },        // Pay Details
         4: { cellWidth: 20, halign: 'right', fontStyle: 'bold' }, // Total
         5: { cellWidth: 18, halign: 'center' }, // Status
-      },
-      didDrawCell: (data) => {
-        // Bottom border on head row
-        if (data.section === 'head') {
-          doc.setDrawColor(...BLACK);
-          doc.setLineWidth(0.3);
-          doc.line(data.cell.x, data.cell.y + data.cell.height, data.cell.x + data.cell.width, data.cell.y + data.cell.height);
-        }
       },
     });
 
@@ -305,20 +298,14 @@ export function generateWorkLogPDF(log) {
         lineWidth: 0.1,
       },
       headStyles: {
-        fillColor: false,
-        textColor: GRAY,
+        fillColor: ACCENT,
+        textColor: WHITE,
         fontStyle: 'bold',
         fontSize: 7.5,
+        cellPadding: { top: 3, bottom: 3, left: 2, right: 2 },
       },
       columnStyles: {
         2: { halign: 'right', fontStyle: 'bold' },
-      },
-      didDrawCell: (data) => {
-        if (data.section === 'head') {
-          doc.setDrawColor(...BLACK);
-          doc.setLineWidth(0.3);
-          doc.line(data.cell.x, data.cell.y + data.cell.height, data.cell.x + data.cell.width, data.cell.y + data.cell.height);
-        }
       },
     });
 

@@ -7,6 +7,7 @@ import { doc, getDoc, setDoc } from 'firebase/firestore';
 import { onAuthStateChanged, signOut } from 'firebase/auth';
 import { auth, db, hasFirebaseConfig } from './firebase';
 import Login from './Login';
+import defaultData from '../data.json';
 import './App.css';
 
 const PLATFORMS = [
@@ -420,13 +421,31 @@ function App() {
             <BarChart3 size={18} /> METRICS
           </button>
           {hasFirebaseConfig && user && (
-            <button 
-              className="tab"
-              style={{ marginLeft: 'auto', borderLeft: '2px solid #000', backgroundColor: '#fee2e2', color: '#b91c1c' }}
-              onClick={() => signOut(auth)}
-            >
-              <LogOut size={18} /> LOGOUT
-            </button>
+            <>
+              <button 
+                className="tab"
+                style={{ marginLeft: 'auto', borderLeft: '2px solid #000', backgroundColor: '#fef08a', color: '#854d0e' }}
+                onClick={async () => {
+                  try {
+                    const userDocRef = doc(db, 'users', user.uid);
+                    await setDoc(userDocRef, { logs: defaultData });
+                    setLogs(defaultData);
+                    alert("Success! Your original data was pushed to the cloud.");
+                  } catch (e) {
+                    alert("Error syncing data: " + e.message);
+                  }
+                }}
+              >
+                <Download size={18} style={{ transform: 'rotate(180deg)' }} /> FORCE SYNC DATA
+              </button>
+              <button 
+                className="tab"
+                style={{ borderLeft: '2px solid #000', backgroundColor: '#fee2e2', color: '#b91c1c' }}
+                onClick={() => signOut(auth)}
+              >
+                <LogOut size={18} /> LOGOUT
+              </button>
+            </>
           )}
         </div>
 
