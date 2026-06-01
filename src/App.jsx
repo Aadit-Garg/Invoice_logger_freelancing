@@ -682,6 +682,16 @@ function App() {
                 
                 <div style={{ display: 'flex', flexDirection: 'column', gap: '1rem', marginTop: '1.5rem' }}>
                   <div style={{ display: 'flex', justifyContent: 'space-between', paddingBottom: '0.5rem', borderBottom: '1px solid var(--glass-border)' }}>
+                    <span style={{ color: 'var(--text-muted)', fontWeight: 600 }}>Total Earned</span>
+                    <span style={{ fontWeight: 800 }}>${ytdEarnings.toFixed(2)} &nbsp;&nbsp;<span style={{color: 'var(--text-muted)'}}>₹{(ytdEarnings * (exchangeRateINR || 83.50)).toFixed(2)}</span></span>
+                  </div>
+
+                  <div style={{ display: 'flex', justifyContent: 'space-between', paddingBottom: '0.5rem', borderBottom: '1px solid var(--glass-border)' }}>
+                    <span style={{ color: 'var(--text-muted)', fontWeight: 600 }}>Outstanding</span>
+                    <span style={{ fontWeight: 800 }}>${ytdOutstanding.toFixed(2)} &nbsp;&nbsp;<span style={{color: 'var(--text-muted)'}}>₹{(ytdOutstanding * (exchangeRateINR || 83.50)).toFixed(2)}</span></span>
+                  </div>
+
+                  <div style={{ display: 'flex', justifyContent: 'space-between', paddingBottom: '0.5rem', borderBottom: '1px solid var(--glass-border)' }}>
                     <span style={{ color: 'var(--text-muted)', fontWeight: 600 }}>Total Transferred (USD)</span>
                     <span style={{ fontWeight: 800 }}>${totalGrossUSD.toFixed(2)}</span>
                   </div>
