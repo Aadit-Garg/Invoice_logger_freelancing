@@ -1,8 +1,12 @@
 import React, { useState, useEffect } from 'react';
-import { Plus, Trash2, ArrowLeft, Briefcase, ChevronRight, Download, FileSpreadsheet, LayoutDashboard, Clock, BarChart3 } from 'lucide-react';
+import { Plus, Trash2, ArrowLeft, Briefcase, ChevronRight, Download, FileSpreadsheet, LayoutDashboard, Clock, BarChart3, LogOut } from 'lucide-react';
 import TextareaAutosize from 'react-textarea-autosize';
 import { generateWorkLogPDF } from './generatePDF';
 import { BarChart, Bar, XAxis, YAxis, Tooltip as RechartsTooltip, ResponsiveContainer, PieChart, Pie, Cell } from 'recharts';
+import { doc, getDoc, setDoc } from 'firebase/firestore';
+import { onAuthStateChanged, signOut } from 'firebase/auth';
+import { auth, db, hasFirebaseConfig } from './firebase';
+import Login from './Login';
 import './App.css';
 
 const PLATFORMS = [
@@ -70,6 +74,8 @@ function App() {
   const [activeTab, setActiveTab] = useState('monthly'); // 'monthly' | 'pending' | 'metrics'
   const [pendingTasksSnapshot, setPendingTasksSnapshot] = useState([]);
   
+  const [user, setUser] = useState(null);
+  const [authChecking, setAuthChecking] = useState(true);
   const [hasLoaded, setHasLoaded] = useState(false);
   const [logs, setLogs] = useState(() => {
     try {
@@ -98,45 +104,53 @@ function App() {
   );
 
   useEffect(() => {
-    const syncWithServer = async () => {
+    if (!hasFirebaseConfig || !auth) {
+      setAuthChecking(false);
+      return;
+    }
+    const unsubscribe = onAuthStateChanged(auth, (currentUser) => {
+      setUser(currentUser);
+      setAuthChecking(false);
+    });
+    return () => unsubscribe();
+  }, []);
+
+  useEffect(() => {
+    const syncWithDB = async () => {
+      if (!hasFirebaseConfig) {
+        setHasLoaded(true);
+        return;
+      }
+      if (!user) return; // Wait for user to be logged in
+
       try {
-        const res = await fetch('/api/data');
-        if (res.ok) {
-          const serverLogs = await res.json();
-          if (Array.isArray(serverLogs)) {
-            if (serverLogs.length > 0) {
-              const sanitized = serverLogs.map(log => ({
-                ...log,
-                workLogs: (log.workLogs || []).map(wl => {
-                  if (wl.hours !== undefined) {
-                    const newWl = { ...wl, minutes: Math.round(wl.hours * 60) };
-                    delete newWl.hours;
-                    return newWl;
-                  }
-                  return wl;
-                })
-              }));
-              setLogs(sanitized);
-            } else {
-              const saved = localStorage.getItem('freelanceLogsMulti');
-              if (saved && JSON.parse(saved).length > 0) {
-                await fetch('/api/data', {
-                  method: 'POST',
-                  headers: { 'Content-Type': 'application/json' },
-                  body: saved
-                });
-              }
+        const userDocRef = doc(db, 'users', user.uid);
+        const docSnap = await getDoc(userDocRef);
+
+        if (docSnap.exists()) {
+          const dbData = docSnap.data().logs || [];
+          if (Array.isArray(dbData) && dbData.length > 0) {
+            setLogs(dbData);
+          }
+        } else {
+          // Migration: if DB is empty, pull from localStorage and save to DB
+          const saved = localStorage.getItem('freelanceLogsMulti');
+          if (saved) {
+            const parsedSaved = JSON.parse(saved);
+            if (parsedSaved.length > 0) {
+              await setDoc(userDocRef, { logs: parsedSaved });
+              console.log('Migrated localStorage to Firebase for user', user.uid);
             }
           }
         }
       } catch (err) {
-        console.warn('Failed to sync with local file database. Using localStorage.', err);
+        console.warn('Failed to sync with Firebase. Using localStorage.', err);
       } finally {
         setHasLoaded(true);
       }
     };
-    syncWithServer();
-  }, []);
+    syncWithDB();
+  }, [user]);
 
   useEffect(() => {
     localStorage.setItem('freelanceLogsMulti', JSON.stringify(logs));
@@ -144,21 +158,18 @@ function App() {
       setSelectedYear(availableYears[0]);
     }
 
-    if (hasLoaded) {
-      const saveToServer = async () => {
+    if (hasLoaded && hasFirebaseConfig && user) {
+      const saveToFirebase = async () => {
         try {
-          await fetch('/api/data', {
-            method: 'POST',
-            headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify(logs)
-          });
+          const userDocRef = doc(db, 'users', user.uid);
+          await setDoc(userDocRef, { logs });
         } catch (err) {
-          console.warn('Failed to save to local file database:', err);
+          console.warn('Failed to save to Firebase:', err);
         }
       };
-      saveToServer();
+      saveToFirebase();
     }
-  }, [logs, hasLoaded]);
+  }, [logs, hasLoaded, user]);
 
   useEffect(() => {
     if (activeTab === 'pending') {
@@ -347,6 +358,14 @@ function App() {
     downloadCSV(`Payouts_${selectedYear}.csv`, rows);
   };
 
+  if (authChecking) {
+    return <div style={{ padding: '2rem', fontWeight: 800, fontFamily: 'monospace', fontSize: '1.5rem', textAlign: 'center', marginTop: '20vh' }}>INITIALIZING HQ...</div>;
+  }
+
+  if (hasFirebaseConfig && !user) {
+    return <Login />;
+  }
+
   if (!activeLogId) {
     // ----------------- DASHBOARD VIEW -----------------
     const ytdMins = filteredLogs.reduce((sum, log) => sum + log.workLogs.reduce((s, wl) => s + (Number(wl.minutes) || 0), 0), 0);
@@ -400,6 +419,15 @@ function App() {
           >
             <BarChart3 size={18} /> METRICS
           </button>
+          {hasFirebaseConfig && user && (
+            <button 
+              className="tab"
+              style={{ marginLeft: 'auto', borderLeft: '2px solid #000', backgroundColor: '#fee2e2', color: '#b91c1c' }}
+              onClick={() => signOut(auth)}
+            >
+              <LogOut size={18} /> LOGOUT
+            </button>
+          )}
         </div>
 
         {activeTab === 'metrics' && (
