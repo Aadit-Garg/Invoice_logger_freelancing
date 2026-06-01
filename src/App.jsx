@@ -505,6 +505,22 @@ function App() {
           )}
         </div>
 
+        {/* Mobile Install Prompt */}
+        {installPrompt && (
+          <div className="mobile-install-banner">
+            <div className="install-banner-content">
+              <div style={{ display: 'flex', alignItems: 'center', gap: '12px' }}>
+                <img src="/logo.png" alt="App Logo" className="install-banner-logo" />
+                <div className="install-banner-text">
+                  <strong>Install Freelance HQ</strong>
+                  <span>Add to home screen</span>
+                </div>
+              </div>
+              <button onClick={handleInstallPWA} className="btn-primary install-banner-btn">Install</button>
+            </div>
+          </div>
+        )}
+
         {activeTab === 'metrics' && (
           <div className="metrics-view">
             <div className="ytd-banner">

@@ -1443,3 +1443,76 @@ button:active {
 }
 
 
+
+
+/* Mobile Install Banner */
+.mobile-install-banner {
+  display: none;
+}
+
+@media (max-width: 768px) {
+  .mobile-install-banner {
+    display: block;
+    position: fixed;
+    bottom: 20px;
+    left: 20px;
+    right: 20px;
+    background: var(--surface-color);
+    border: 1px solid var(--glass-border);
+    border-radius: 20px;
+    padding: 12px 16px;
+    box-shadow: 0 10px 30px rgba(0,0,0,0.15);
+    z-index: 1000;
+    animation: slideUp 0.5s ease-out;
+    backdrop-filter: blur(20px);
+    -webkit-backdrop-filter: blur(20px);
+  }
+
+  .install-banner-content {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    gap: 12px;
+  }
+
+  .install-banner-logo {
+    width: 40px;
+    height: 40px;
+    border-radius: 10px;
+    box-shadow: 0 2px 8px rgba(0,0,0,0.1);
+  }
+
+  .install-banner-text {
+    display: flex;
+    flex-direction: column;
+  }
+
+  .install-banner-text strong {
+    font-size: 0.95rem;
+    color: var(--text-main);
+  }
+
+  .install-banner-text span {
+    font-size: 0.75rem;
+    color: var(--text-muted);
+  }
+
+  .install-banner-btn {
+    padding: 8px 16px;
+    font-size: 0.85rem;
+    border-radius: 12px;
+    white-space: nowrap;
+  }
+}
+
+@keyframes slideUp {
+  from {
+    transform: translateY(100px);
+    opacity: 0;
+  }
+  to {
+    transform: translateY(0);
+    opacity: 1;
+  }
+}
+
