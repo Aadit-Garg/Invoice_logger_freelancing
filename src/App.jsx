@@ -99,6 +99,18 @@ function App() {
   const [activeTab, setActiveTab] = useState('monthly'); // 'monthly' | 'pending' | 'metrics'
   const [pendingTasksSnapshot, setPendingTasksSnapshot] = useState([]);
   const [installPrompt, setInstallPrompt] = useState(null);
+  const [exchangeRateINR, setExchangeRateINR] = useState(null);
+
+  useEffect(() => {
+    fetch('https://open.er-api.com/v6/latest/USD')
+      .then(res => res.json())
+      .then(data => {
+        if (data && data.rates && data.rates.INR) {
+          setExchangeRateINR(data.rates.INR);
+        }
+      })
+      .catch(err => console.error("Failed to fetch exchange rate", err));
+  }, []);
 
   useEffect(() => {
     const handleBeforeInstall = (e) => {
@@ -454,6 +466,34 @@ function App() {
     });
     const platformChartData = Object.entries(platformTotals).map(([name, value]) => ({ name, value }));
 
+    // Fee & Conversion Calculations
+    const PAYPAL_FEE_RATE = 0.0472; // 4% + 18% tax on 4%
+    const STRIPE_FEE_RATE = 0.0236; // 2% + 18% tax on 2%
+    let paypalGrossUSD = 0;
+    let stripeGrossUSD = 0;
+
+    filteredLogs.forEach(log => {
+      log.payouts.forEach(p => {
+        const amt = Number(p.amount) || 0;
+        if (p.method === 'PayPal') {
+          paypalGrossUSD += amt;
+        } else {
+          stripeGrossUSD += amt;
+        }
+      });
+    });
+
+    const totalGrossUSD = paypalGrossUSD + stripeGrossUSD;
+    const paypalFeeUSD = paypalGrossUSD * PAYPAL_FEE_RATE;
+    const stripeFeeUSD = stripeGrossUSD * STRIPE_FEE_RATE;
+    const totalFeesUSD = paypalFeeUSD + stripeFeeUSD;
+    const netUSD = totalGrossUSD - totalFeesUSD;
+
+    const rate = exchangeRateINR || 83.50; // Fallback
+    const grossINR = totalGrossUSD * rate;
+    const feesINR = totalFeesUSD * rate;
+    const netINR = netUSD * rate;
+
     return (
       <div className="app-container">
         
@@ -571,9 +611,9 @@ function App() {
 
             <div className="graphs-grid" style={{display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(280px, 1fr))', gap: '2rem', marginTop: '2.5rem'}}>
               
-              <div className="graph-card brutalist-card">
+              <div className="graph-card brutalist-card" style={{ minWidth: 0 }}>
                 <h3>EARNED VS TRANSFERRED (BY MONTH)</h3>
-                <div style={{height: 300, marginTop: '1rem'}}>
+                <div style={{height: 300, marginTop: '1rem', width: '100%', minWidth: 0}}>
                   <ResponsiveContainer width="100%" height="100%">
                     <BarChart data={monthChartData} margin={{top: 20, right: 20, bottom: 20, left: 0}}>
                       <XAxis dataKey="name" tickLine={false} axisLine={false} tick={{fill: '#86868b', fontWeight: '500'}}/>
@@ -599,9 +639,9 @@ function App() {
                 </div>
               </div>
 
-              <div className="graph-card brutalist-card">
+              <div className="graph-card brutalist-card" style={{ minWidth: 0 }}>
                 <h3>INCOME BY PLATFORM</h3>
-                <div style={{height: 300, marginTop: '1rem'}}>
+                <div style={{height: 300, marginTop: '1rem', width: '100%', minWidth: 0}}>
                   <ResponsiveContainer width="100%" height="100%">
                     <PieChart>
                       <Pie
@@ -632,6 +672,39 @@ function App() {
                       />
                     </PieChart>
                   </ResponsiveContainer>
+                </div>
+              </div>
+              <div className="graph-card brutalist-card" style={{ minWidth: 0 }}>
+                <h3 style={{ display: 'flex', justifyContent: 'space-between' }}>
+                  <span>INR CONVERSION & FEES</span>
+                  <span style={{ fontSize: '0.85rem', color: 'var(--text-muted)' }}>1 USD = ₹{(exchangeRateINR || 83.50).toFixed(2)}</span>
+                </h3>
+                
+                <div style={{ display: 'flex', flexDirection: 'column', gap: '1rem', marginTop: '1.5rem' }}>
+                  <div style={{ display: 'flex', justifyContent: 'space-between', paddingBottom: '0.5rem', borderBottom: '1px solid var(--glass-border)' }}>
+                    <span style={{ color: 'var(--text-muted)', fontWeight: 600 }}>Total Transferred (USD)</span>
+                    <span style={{ fontWeight: 800 }}>${totalGrossUSD.toFixed(2)}</span>
+                  </div>
+                  
+                  <div style={{ display: 'flex', justifyContent: 'space-between' }}>
+                    <span style={{ color: 'var(--text-muted)', fontWeight: 600 }}>Gross (INR)</span>
+                    <span style={{ fontWeight: 800 }}>₹{grossINR.toFixed(2)}</span>
+                  </div>
+                  
+                  <div style={{ display: 'flex', justifyContent: 'space-between', color: '#ef4444' }}>
+                    <span style={{ fontWeight: 600 }}>Total Platform Fees</span>
+                    <span style={{ fontWeight: 800 }}>- ₹{feesINR.toFixed(2)}</span>
+                  </div>
+
+                  <div style={{ fontSize: '0.8rem', color: 'var(--text-muted)', marginTop: '-0.5rem', display: 'flex', flexDirection: 'column', gap: '2px' }}>
+                    <span>• PayPal (4.72%): ${paypalFeeUSD.toFixed(2)}</span>
+                    <span>• Stripe/Other (2.36%): ${stripeFeeUSD.toFixed(2)}</span>
+                  </div>
+                  
+                  <div style={{ display: 'flex', justifyContent: 'space-between', padding: '1rem', background: 'rgba(52, 199, 89, 0.1)', border: '1px solid rgba(52, 199, 89, 0.2)', borderRadius: '12px', marginTop: '0.5rem' }}>
+                    <span style={{ color: '#34c759', fontWeight: 700, textTransform: 'uppercase' }}>Net in Bank</span>
+                    <span style={{ color: '#34c759', fontWeight: 800, fontSize: '1.1rem' }}>₹{netINR.toFixed(2)}</span>
+                  </div>
                 </div>
               </div>
 
