@@ -1,6 +1,6 @@
 {
-  "name": "Antigravity Invoice Logger",
-  "short_name": "Invoice Logger",
+  "name": "FreeLog",
+  "short_name": "FreeLog",
   "description": "Progressive Web App for Apple-inspired glassmorphic freelance invoice generation and time tracking.",
   "start_url": "/",
   "display": "standalone",

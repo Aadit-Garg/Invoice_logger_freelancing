@@ -68,7 +68,7 @@ export default function Login() {
       {/* Premium Glassmorphic Login Card */}
       <div className="login-card">
         <h1 className="login-logo">
-          {isLogin ? 'FREELANCE_HQ' : 'JOIN_HQ'}
+          {isLogin ? 'FREELOG' : 'JOIN_HQ'}
         </h1>
         <div className="login-subtitle">
           {isLogin ? 'Secure Console Access' : 'Create Operator Profile'}

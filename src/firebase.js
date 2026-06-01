@@ -1,6 +1,6 @@
 import { initializeApp } from "firebase/app";
 import { getFirestore } from "firebase/firestore";
-import { getAuth } from "firebase/auth";
+import { getAuth, setPersistence, browserLocalPersistence } from "firebase/auth";
 
 const firebaseConfig = {
   apiKey: import.meta.env.VITE_FIREBASE_API_KEY,
@@ -17,4 +17,9 @@ const isConfigured = !!firebaseConfig.apiKey;
 export const app = isConfigured ? initializeApp(firebaseConfig) : null;
 export const db = isConfigured ? getFirestore(app) : null;
 export const auth = isConfigured ? getAuth(app) : null;
+
+if (auth) {
+  setPersistence(auth, browserLocalPersistence).catch((err) => console.error("Auth persistence error:", err));
+}
+
 export const hasFirebaseConfig = isConfigured;

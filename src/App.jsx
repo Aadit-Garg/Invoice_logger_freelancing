@@ -458,7 +458,29 @@ function App() {
       <div className="app-container">
         
         {/* Brutalist Header Title */}
-        <h1 className="brutalist-title">FREELANCE_HQ</h1>
+        <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '1.5rem' }}>
+          <h1 className="brutalist-title" style={{ marginBottom: 0 }}>FREELOG</h1>
+          {hasFirebaseConfig && user && (
+            <div style={{ display: 'flex', gap: '0.75rem' }}>
+              <button 
+                className="icon-only"
+                style={{ background: 'var(--surface-color)', padding: '0.5rem', borderRadius: '12px', border: '1px solid var(--glass-border)', cursor: 'pointer', color: 'var(--text-main)' }}
+                onClick={() => setTheme(theme === 'light' ? 'dark' : 'light')}
+                title="Toggle Theme"
+              >
+                {theme === 'light' ? <Moon size={20} /> : <Sun size={20} />}
+              </button>
+              <button 
+                className="icon-only"
+                style={{ background: 'var(--surface-color)', padding: '0.5rem', borderRadius: '12px', border: '1px solid var(--glass-border)', cursor: 'pointer', color: '#ef4444' }}
+                onClick={() => signOut(auth)}
+                title="Logout"
+              >
+                <LogOut size={20} />
+              </button>
+            </div>
+          )}
+        </div>
         
         {/* Tab Navigation */}
         <div className="tabs-container">
@@ -486,23 +508,6 @@ function App() {
           >
             <Settings size={18} /> SETTINGS
           </button>
-          {hasFirebaseConfig && user && (
-            <>
-              <button 
-                className="tab"
-                style={{ marginLeft: 'auto' }}
-                onClick={() => setTheme(theme === 'light' ? 'dark' : 'light')}
-              >
-                {theme === 'light' ? <Moon size={18} /> : <Sun size={18} />} THEME
-              </button>
-              <button 
-                className="tab"
-                onClick={() => signOut(auth)}
-              >
-                <LogOut size={18} /> LOGOUT
-              </button>
-            </>
-          )}
         </div>
 
         {/* Mobile Install Prompt */}
@@ -512,7 +517,7 @@ function App() {
               <div style={{ display: 'flex', alignItems: 'center', gap: '12px' }}>
                 <img src="/logo.png" alt="App Logo" className="install-banner-logo" />
                 <div className="install-banner-text">
-                  <strong>Install Freelance HQ</strong>
+                  <strong>Install FreeLog</strong>
                   <span>Add to home screen</span>
                 </div>
               </div>
@@ -564,7 +569,7 @@ function App() {
               </div>
             </div>
 
-            <div className="graphs-grid" style={{display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(400px, 1fr))', gap: '2rem', marginTop: '2.5rem'}}>
+            <div className="graphs-grid" style={{display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(280px, 1fr))', gap: '2rem', marginTop: '2.5rem'}}>
               
               <div className="graph-card brutalist-card">
                 <h3>EARNED VS TRANSFERRED (BY MONTH)</h3>
@@ -698,7 +703,7 @@ function App() {
                 }}>
                   <img src="/logo.png" alt="App Logo" style={{width: '100%', height: '100%', objectFit: 'cover'}} />
                 </div>
-                <h4 style={{fontSize: '1rem', fontWeight: 800, marginBottom: '0.25rem'}}>ANTIGRAVITY INVOICE LOGGER</h4>
+                <h4 style={{fontSize: '1rem', fontWeight: 800, marginBottom: '0.25rem'}}>FREELOG</h4>
                 <p style={{fontSize: '0.8rem', color: 'var(--text-muted)', textTransform: 'uppercase', fontWeight: 700, letterSpacing: '0.05em'}}>
                   Premium Apple-Inspired Edition
                 </p>
@@ -813,36 +818,35 @@ function App() {
                 </div>
               </div>
             ) : (
-              <div className="document-wrapper">
-                <div className="ambient-glow no-print"></div>
-                <div className="invoice-document log-document" style={{padding: '2rem 3rem'}}>
-                  <div className="work-log-table">
-                  <div className="wl-header pending-header">
-                    <div>Log</div>
-                    <div>Date</div>
-                    <div>Platform</div>
-                    <div>Project / Amount</div>
-                    <div>Status</div>
-                    <div></div>
-                  </div>
-                  
-                  {displayPendingTasks.map((item) => (
-                    <div key={item.id} className="wl-row pending-row">
-                      <div data-label="Log" style={{fontWeight: 800, color: 'var(--text-main)'}}>{item.logMonth.split(' ')[0]}</div>
-                      <div data-label="Date" style={{color: 'var(--text-main)', fontWeight: 600}}>{item.dateWorked}</div>
-                      <div data-label="Platform" style={{color: 'var(--text-main)', fontWeight: 700}}>{item.platform}</div>
-                      
-                      <div data-label="Project / Amount" style={{display: 'flex', flexDirection: 'column', gap: '4px'}}>
-                        <div style={{color: 'var(--text-main)', fontSize: '0.95rem', fontWeight: 700}}>{item.projectName || 'Unnamed Project'}</div>
-                        <div style={{fontSize: '0.85rem', color: 'var(--text-main)', fontWeight: 600}}>
-                          {(!item.minutes || item.minutes === 0) ? 'Fixed Pay' : `${formatTime(item.minutes)} @ $${Number(item.hourlyRate || 0).toFixed(2)}/h`} = ${getEarnings(item).toFixed(2)}
-                        </div>
+              <div className="graphs-grid" style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(280px, 1fr))', gap: '1.5rem' }}>
+                {displayPendingTasks.map((item) => (
+                  <div key={item.id} className="graph-card brutalist-card" style={{ padding: '1.5rem', display: 'flex', flexDirection: 'column', gap: '1rem' }}>
+                    <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start' }}>
+                      <div>
+                        <div style={{ fontWeight: 800, color: 'var(--text-main)', fontSize: '1.1rem' }}>{item.projectName || 'Unnamed Project'}</div>
+                        <div style={{ color: 'var(--text-muted)', fontSize: '0.85rem', fontWeight: 600, marginTop: '4px' }}>{item.platform} • {item.dateWorked}</div>
+                        <div style={{ color: 'var(--text-main)', fontSize: '0.8rem', fontWeight: 700, marginTop: '4px', background: 'var(--surface-color)', display: 'inline-block', padding: '2px 8px', borderRadius: '4px', border: '1px solid var(--glass-border)' }}>{item.logMonth.split(' ')[0]} LOG</div>
                       </div>
-                      <div data-label="Status">
+                      <button className="icon-only" onClick={() => removeGlobalWorkLog(item.logId, item.id)} style={{ color: '#ef4444', padding: '4px' }} title="Delete task">
+                        <Trash2 size={18} strokeWidth={2.5} />
+                      </button>
+                    </div>
+
+                    <div style={{ color: 'var(--text-main)', fontSize: '0.9rem', fontWeight: 600, background: 'rgba(0,113,227,0.05)', padding: '0.75rem', borderRadius: '12px', border: '1px solid rgba(0,113,227,0.1)' }}>
+                      {(!item.minutes || item.minutes === 0) ? 'Fixed Pay' : `${formatTime(item.minutes)} @ $${Number(item.hourlyRate || 0).toFixed(2)}/h`} = ${getEarnings(item).toFixed(2)}
+                    </div>
+
+                    <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginTop: 'auto', paddingTop: '1rem', borderTop: '1px solid var(--glass-border)' }}>
+                      <div style={{ display: 'flex', flexDirection: 'column' }}>
+                        <span style={{ fontSize: '0.75rem', color: 'var(--text-muted)', fontWeight: 700, textTransform: 'uppercase' }}>Expected Payout</span>
+                        <span style={{ fontWeight: 800, fontSize: '1.2rem', color: 'var(--text-main)' }}>${getEarnings(item).toFixed(2)}</span>
+                      </div>
+                      <div>
                         <select 
                           className={`status-select status-${item.status.toLowerCase().replace(' ', '-')}`}
                           value={item.status}
                           onChange={(e) => updateGlobalWorkLogItem(item.logId, item.id, 'status', e.target.value)}
+                          style={{ padding: '6px 12px', fontSize: '0.85rem' }}
                         >
                           <option value="Pending">Pending</option>
                           <option value="Cleared">Cleared</option>
@@ -850,15 +854,9 @@ function App() {
                           <option value="Quality Issue">Quality Issue</option>
                         </select>
                       </div>
-                      <div className="no-print" style={{textAlign: 'right'}}>
-                        <button className="icon-only" onClick={() => removeGlobalWorkLog(item.logId, item.id)}>
-                          <Trash2 size={18} strokeWidth={2.5} />
-                        </button>
-                      </div>
                     </div>
-                  ))}
-                </div>
-              </div>
+                  </div>
+                ))}
               </div>
             )}
           </div>
