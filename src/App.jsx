@@ -242,6 +242,15 @@ function App() {
     setActiveLogId(newLog.id);
   };
 
+  const handleDeleteLog = (logId) => {
+    if (window.confirm("Are you sure you want to delete this monthly log? All associated work logs and payouts will be permanently deleted.")) {
+      setLogs(logs.filter(log => log.id !== logId));
+      if (activeLogId === logId) {
+        setActiveLogId(null);
+      }
+    }
+  };
+
   const updateActiveLog = (updates) => {
     setLogs(logs.map(log => 
       log.id === activeLogId ? { ...log, ...updates } : log
@@ -619,7 +628,7 @@ function App() {
                   <div>Platforms</div>
                   <div>Total Time</div>
                   <div>Earnings</div>
-                  <div></div>
+                  <div style={{textAlign: 'right'}}>Actions</div>
                 </div>
                 {filteredLogs.map(log => {
                   const totalMins = log.workLogs.reduce((sum, item) => sum + (Number(item.minutes) || 0), 0);
@@ -637,8 +646,16 @@ function App() {
                       <div style={{fontSize: '0.85rem', fontWeight: 600}}>{platformsStr}</div>
                       <div style={{fontWeight: 700}}>{formatTime(totalMins)}</div>
                       <div style={{fontWeight: 800}}>${totalEarnings.toFixed(2)}</div>
-                      <div style={{color: 'var(--text-main)', textAlign: 'right'}}>
-                        <ChevronRight size={20} strokeWidth={3} />
+                      <div style={{display: 'flex', gap: '8px', alignItems: 'center', justifyContent: 'flex-end'}} onClick={(e) => e.stopPropagation()}>
+                        <button 
+                          className="icon-only delete-log-btn" 
+                          onClick={() => handleDeleteLog(log.id)}
+                          style={{color: '#ef4444', padding: '4px', background: 'transparent', boxShadow: 'none'}}
+                          title="Delete monthly log"
+                        >
+                          <Trash2 size={18} />
+                        </button>
+                        <ChevronRight size={20} strokeWidth={3} onClick={() => setActiveLogId(log.id)} style={{cursor: 'pointer'}} />
                       </div>
                     </div>
                   );
@@ -750,7 +767,14 @@ function App() {
         <button className="btn-secondary back-btn" onClick={() => setActiveLogId(null)}>
           <ArrowLeft size={16} /> DASHBOARD
         </button>
-        <div className="editor-actions">
+        <div className="editor-actions" style={{display: 'flex', gap: '8px'}}>
+          <button 
+            className="btn-secondary delete-btn" 
+            onClick={() => handleDeleteLog(activeLog.id)}
+            style={{color: '#ef4444'}}
+          >
+            <Trash2 size={16} /> DELETE LOG
+          </button>
           <button className="btn-secondary" onClick={handleExportPDF} disabled={isExporting}>
             {isExporting ? 'EXPORTING...' : <><Download size={16} /> DOWNLOAD PDF</>}
           </button>

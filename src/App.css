@@ -1147,6 +1147,10 @@ button:active {
     margin-bottom: 1.5rem !important;
     padding-bottom: 1rem !important;
   }
+  .editor-top-bar {
+    flex-wrap: wrap !important;
+    gap: 0.75rem !important;
+  }
 
   /* 2. Hide horizontal table headers on mobile */
   .wl-header, .payout-header, .pending-header, .invoice-list-header {
@@ -1350,6 +1354,7 @@ button:active {
     gap: 0.5rem 1rem !important;
     padding: 1.25rem !important;
     border-radius: 12px !important;
+    position: relative !important;
   }
 
   .invoice-list-item > div:nth-child(1) { /* Month */
@@ -1372,8 +1377,21 @@ button:active {
     text-align: right !important;
   }
 
-  .invoice-list-item > div:nth-child(5) { /* Chevron */
-    display: none !important;
+  .invoice-list-item > div:nth-child(5) { /* Actions container positioning */
+    display: flex !important;
+    position: absolute !important;
+    top: 12px !important;
+    right: 12px !important;
+    align-items: center !important;
+    gap: 4px !important;
+  }
+
+  .invoice-list-item > div:nth-child(5) > svg {
+    display: none !important; /* Hide chevron on mobile */
+  }
+
+  .invoice-list-item > div:nth-child(5) button {
+    padding: 4px !important;
   }
 
   /* 11. Stack dashboard stats-grid to be 2x2 or 1-column */
