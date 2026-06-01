@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { Plus, Trash2, ArrowLeft, Briefcase, ChevronRight, Download, FileSpreadsheet, LayoutDashboard, Clock, BarChart3, LogOut } from 'lucide-react';
+import { Plus, Trash2, ArrowLeft, Briefcase, ChevronRight, Download, FileSpreadsheet, LayoutDashboard, Clock, BarChart3, LogOut, Sun, Moon } from 'lucide-react';
 import TextareaAutosize from 'react-textarea-autosize';
 import { generateWorkLogPDF } from './generatePDF';
 import { BarChart, Bar, XAxis, YAxis, Tooltip as RechartsTooltip, ResponsiveContainer, PieChart, Pie, Cell } from 'recharts';
@@ -24,7 +24,31 @@ const PAYOUT_METHODS = [
   'Direct Deposit'
 ];
 
-const BRUTALIST_COLORS = ['#000000', '#2563eb', '#059669', '#d97706', '#475569'];
+const APPLE_COLORS = ['#0071e3', '#34c759', '#ff9500', '#5856d6', '#ff2d55'];
+
+// Parse "MAY 2026" into year and month (1-12)
+const parseMonthYear = (monthYearStr) => {
+  const parts = (monthYearStr || '').trim().split(/\s+/);
+  const monthNames = ["JANUARY", "FEBRUARY", "MARCH", "APRIL", "MAY", "JUNE", "JULY", "AUGUST", "SEPTEMBER", "OCTOBER", "NOVEMBER", "DECEMBER"];
+  let year = new Date().getFullYear();
+  let monthIdx = new Date().getMonth(); // 0-11
+  
+  if (parts.length >= 1) {
+    const mStr = parts[0].toUpperCase();
+    const idx = monthNames.findIndex(name => name.startsWith(mStr) || mStr.startsWith(name));
+    if (idx !== -1) monthIdx = idx;
+  }
+  if (parts.length >= 2) {
+    const y = parseInt(parts[1], 10);
+    if (!isNaN(y)) year = y;
+  }
+  return { year, month: monthIdx + 1 };
+};
+
+// Get total days in month
+const getDaysInMonth = (year, month) => {
+  return new Date(year, month, 0).getDate();
+};
 
 
 const formatTime = (totalMins) => {
@@ -83,26 +107,35 @@ function App() {
       const saved = localStorage.getItem('freelanceLogsMulti');
       if (saved) {
         let parsed = JSON.parse(saved);
-        return parsed.map(log => ({
-          ...log,
-          workLogs: log.workLogs.map(wl => {
-            if (wl.hours !== undefined) {
-              const newWl = { ...wl, minutes: Math.round(wl.hours * 60) };
-              delete newWl.hours;
-              return newWl;
-            }
-            return wl;
-          })
-        }));
+        if (parsed.length > 0) {
+          return parsed.map(log => ({
+            ...log,
+            workLogs: log.workLogs.map(wl => {
+              if (wl.hours !== undefined) {
+                const newWl = { ...wl, minutes: Math.round(wl.hours * 60) };
+                delete newWl.hours;
+                return newWl;
+              }
+              return wl;
+            })
+          }));
+        }
       }
     } catch (e) { console.error('Failed to parse local storage', e); }
-    return [];
+    return defaultData || [];
   });
 
   const availableYears = [...new Set(logs.map(l => l.taxYear))].sort().reverse();
   const [selectedYear, setSelectedYear] = useState(
     availableYears.length > 0 ? availableYears[0] : new Date().getFullYear().toString()
   );
+
+  const [theme, setTheme] = useState(() => localStorage.getItem('theme') || 'light');
+  
+  useEffect(() => {
+    document.documentElement.setAttribute('data-theme', theme);
+    localStorage.setItem('theme', theme);
+  }, [theme]);
 
   useEffect(() => {
     if (!hasFirebaseConfig || !auth) {
@@ -424,7 +457,13 @@ function App() {
             <>
               <button 
                 className="tab"
-                style={{ marginLeft: 'auto', borderLeft: '2px solid #000', backgroundColor: '#fef08a', color: '#854d0e' }}
+                onClick={() => setTheme(theme === 'light' ? 'dark' : 'light')}
+              >
+                {theme === 'light' ? <Moon size={18} /> : <Sun size={18} />} THEME
+              </button>
+              <button 
+                className="tab"
+                style={{ marginLeft: 'auto' }}
                 onClick={async () => {
                   try {
                     const userDocRef = doc(db, 'users', user.uid);
@@ -440,7 +479,6 @@ function App() {
               </button>
               <button 
                 className="tab"
-                style={{ borderLeft: '2px solid #000', backgroundColor: '#fee2e2', color: '#b91c1c' }}
                 onClick={() => signOut(auth)}
               >
                 <LogOut size={18} /> LOGOUT
@@ -477,9 +515,9 @@ function App() {
                   <span className="ytd-stat-label">Total Transferred</span>
                   <span className="ytd-stat-value">${ytdTransferred.toFixed(2)}</span>
                 </div>
-                <div className="ytd-stat-box highlight-box" style={{background: '#000'}}>
-                  <span className="ytd-stat-label" style={{color: '#fff'}}>Outstanding</span>
-                  <span className="ytd-stat-value" style={{color: '#fff'}}>${ytdOutstanding.toFixed(2)}</span>
+                <div className="ytd-stat-box highlight-box" style={{background: 'var(--text-main)'}}>
+                  <span className="ytd-stat-label" style={{color: 'var(--surface-color)'}}>Outstanding</span>
+                  <span className="ytd-stat-value" style={{color: 'var(--surface-color)'}}>${ytdOutstanding.toFixed(2)}</span>
                 </div>
               </div>
               <div className="ytd-actions">
@@ -499,11 +537,24 @@ function App() {
                 <div style={{height: 300, marginTop: '1rem'}}>
                   <ResponsiveContainer width="100%" height="100%">
                     <BarChart data={monthChartData} margin={{top: 20, right: 20, bottom: 20, left: 0}}>
-                      <XAxis dataKey="name" tickLine={false} axisLine={{stroke: '#000', strokeWidth: 2}} tick={{fill: '#000', fontWeight: 'bold'}}/>
-                      <YAxis tickLine={false} axisLine={{stroke: '#000', strokeWidth: 2}} tick={{fill: '#000', fontWeight: 'bold'}}/>
-                      <RechartsTooltip cursor={{fill: 'rgba(0,0,0,0.05)'}} contentStyle={{border: '2px solid #000', borderRadius: 0, boxShadow: '4px 4px 0px #000', fontWeight: 'bold'}}/>
-                      <Bar dataKey="earned" name="Earned" fill="#d4d4d4" stroke="#000" strokeWidth={2} />
-                      <Bar dataKey="transferred" name="Transferred" fill="#000000" stroke="#000" strokeWidth={2} />
+                      <XAxis dataKey="name" tickLine={false} axisLine={false} tick={{fill: '#86868b', fontWeight: '500'}}/>
+                      <YAxis tickLine={false} axisLine={false} tick={{fill: '#86868b', fontWeight: '500'}}/>
+                      <RechartsTooltip 
+                        cursor={{fill: 'rgba(134,134,139,0.08)'}} 
+                        contentStyle={{
+                          backgroundColor: 'var(--surface-color)', 
+                          border: '1px solid var(--glass-border)', 
+                          borderRadius: '12px', 
+                          boxShadow: 'var(--shadow-md)', 
+                          backdropFilter: 'blur(16px)',
+                          WebkitBackdropFilter: 'blur(16px)',
+                          fontWeight: '500'
+                        }}
+                        labelStyle={{ color: 'var(--text-main)', fontWeight: '700' }}
+                        itemStyle={{ color: 'var(--text-main)', fontSize: '0.85rem' }}
+                      />
+                      <Bar dataKey="earned" name="Earned" fill="#d4d4d4" radius={[4, 4, 0, 0]} />
+                      <Bar dataKey="transferred" name="Transferred" fill="#0071e3" radius={[4, 4, 0, 0]} />
                     </BarChart>
                   </ResponsiveContainer>
                 </div>
@@ -519,16 +570,27 @@ function App() {
                         cx="50%" cy="50%"
                         outerRadius={100}
                         dataKey="value"
-                        stroke="#000"
+                        stroke="var(--surface-color)"
                         strokeWidth={2}
                         label={({name, percent}) => `${name} ${(percent * 100).toFixed(0)}%`}
-                        labelLine={{stroke: '#000', strokeWidth: 2}}
+                        labelLine={{stroke: '#86868b', strokeWidth: 1}}
                       >
                         {platformChartData.map((entry, index) => (
-                          <Cell key={`cell-${index}`} fill={BRUTALIST_COLORS[index % BRUTALIST_COLORS.length]} />
+                          <Cell key={`cell-${index}`} fill={APPLE_COLORS[index % APPLE_COLORS.length]} />
                         ))}
                       </Pie>
-                      <RechartsTooltip contentStyle={{border: '2px solid #000', borderRadius: 0, boxShadow: '4px 4px 0px #000'}}/>
+                      <RechartsTooltip 
+                        contentStyle={{
+                          backgroundColor: 'var(--surface-color)', 
+                          border: '1px solid var(--glass-border)', 
+                          borderRadius: '12px', 
+                          boxShadow: 'var(--shadow-md)', 
+                          backdropFilter: 'blur(16px)',
+                          WebkitBackdropFilter: 'blur(16px)'
+                        }}
+                        labelStyle={{ color: 'var(--text-main)', fontWeight: '700' }}
+                        itemStyle={{ color: 'var(--text-main)', fontSize: '0.85rem' }}
+                      />
                     </PieChart>
                   </ResponsiveContainer>
                 </div>
@@ -608,9 +670,9 @@ function App() {
             </div>
             
             <div className="ytd-stats-grid" style={{marginBottom: '2rem'}}>
-              <div className="ytd-stat-box" style={{background: '#000'}}>
-                <span className="ytd-stat-label" style={{color: '#fff'}}>Pending Income</span>
-                <span className="ytd-stat-value" style={{color: '#fff'}}>
+              <div className="ytd-stat-box" style={{background: 'var(--text-main)'}}>
+                <span className="ytd-stat-label" style={{color: 'var(--surface-color)'}}>Pending Income</span>
+                <span className="ytd-stat-value" style={{color: 'var(--surface-color)'}}>
                   ${displayPendingTasks.reduce((s, wl) => s + getEarnings(wl), 0).toFixed(2)}
                 </span>
               </div>
@@ -635,14 +697,15 @@ function App() {
                 </div>
               </div>
             ) : (
-              <div className="invoice-document log-document" style={{padding: '2rem 3rem'}}>
-                <div className="work-log-table">
+              <div className="document-wrapper">
+                <div className="ambient-glow no-print"></div>
+                <div className="invoice-document log-document" style={{padding: '2rem 3rem'}}>
+                  <div className="work-log-table">
                   <div className="wl-header pending-header">
                     <div>Log</div>
                     <div>Date</div>
                     <div>Platform</div>
                     <div>Project / Amount</div>
-                    <div>Cash-Out</div>
                     <div>Status</div>
                     <div></div>
                   </div>
@@ -660,17 +723,10 @@ function App() {
                         </div>
                       </div>
                       <div>
-                        <input 
-                          type="date"
-                          value={item.cashOutDate}
-                          onChange={(e) => updateGlobalWorkLogItem(item.logId, item.id, { cashOutDate: e.target.value })}
-                        />
-                      </div>
-                      <div>
                         <select 
                           className={`status-select status-${item.status.toLowerCase().replace(' ', '-')}`}
                           value={item.status}
-                          onChange={(e) => updateGlobalWorkLogItem(item.logId, item.id, { status: e.target.value })}
+                          onChange={(e) => updateGlobalWorkLogItem(item.logId, item.id, 'status', e.target.value)}
                         >
                           <option value="Pending">Pending</option>
                           <option value="Cleared">Cleared</option>
@@ -686,6 +742,7 @@ function App() {
                     </div>
                   ))}
                 </div>
+              </div>
               </div>
             )}
           </div>
@@ -716,51 +773,55 @@ function App() {
       </div>
 
       {/* Log Document */}
-      <div id="log-document-capture" className={`invoice-document log-document ${isExporting ? 'exporting' : ''}`}>
+      <div className="document-wrapper">
+        <div className="ambient-glow no-print"></div>
+        <div id="log-document-capture" className={`invoice-document log-document ${isExporting ? 'exporting' : ''}`}>
         
         {/* Header Section */}
         <h1 className="doc-title">INVOICE</h1>
         
-        <div className="metadata-grid">
-          <div className="meta-item">
-            <label>Name:</label>
-            <input 
-              className="inline-input"
-              value={activeLog.userName || ''}
-              onChange={(e) => updateActiveLog({ userName: e.target.value })}
-            />
+        <div className="metadata-container">
+          <div className="meta-left-col">
+            <div className="meta-item">
+              <label>Name</label>
+              <input 
+                value={activeLog.userName || ''}
+                onChange={(e) => updateActiveLog({ userName: e.target.value })}
+              />
+            </div>
+            <div className="meta-item">
+              <label>Email</label>
+              <input 
+                value={activeLog.userEmail || ''}
+                onChange={(e) => updateActiveLog({ userEmail: e.target.value })}
+              />
+            </div>
+            <div className="meta-item">
+              <label>Phone</label>
+              <input 
+                value={activeLog.userPhone || ''}
+                onChange={(e) => updateActiveLog({ userPhone: e.target.value })}
+              />
+            </div>
+            <div className="meta-item">
+              <label>Tax Year</label>
+              <input 
+                value={activeLog.taxYear || ''}
+                onChange={(e) => updateActiveLog({ taxYear: e.target.value })}
+              />
+            </div>
           </div>
-          <div className="meta-item">
-            <label>Email:</label>
-            <input 
-              className="inline-input"
-              value={activeLog.userEmail || ''}
-              onChange={(e) => updateActiveLog({ userEmail: e.target.value })}
-            />
-          </div>
-          <div className="meta-item">
-            <label>Phone:</label>
-            <input 
-              className="inline-input"
-              value={activeLog.userPhone || ''}
-              onChange={(e) => updateActiveLog({ userPhone: e.target.value })}
-            />
-          </div>
-          <div className="meta-item">
-            <label>Address:</label>
-            <input 
-              className="inline-input"
-              value={activeLog.userAddress || ''}
-              onChange={(e) => updateActiveLog({ userAddress: e.target.value })}
-            />
-          </div>
-          <div className="meta-item">
-            <label>Tax Year:</label>
-            <input 
-              className="inline-input"
-              value={activeLog.taxYear || ''}
-              onChange={(e) => updateActiveLog({ taxYear: e.target.value })}
-            />
+          
+          <div className="meta-right-col">
+            <div className="meta-item address-item">
+              <label>Billing & Correspondence Address</label>
+              <textarea 
+                value={activeLog.userAddress || ''}
+                onChange={(e) => updateActiveLog({ userAddress: e.target.value })}
+                placeholder="Enter complete billing/mailing address..."
+                rows={4}
+              />
+            </div>
           </div>
         </div>
 
@@ -769,7 +830,27 @@ function App() {
           <h2>SUMMARY <input 
             className="inline-input summary-month"
             value={activeLog.monthYear}
-            onChange={(e) => updateActiveLog({ monthYear: e.target.value.toUpperCase() })}
+            onChange={(e) => {
+              const newMonthYear = e.target.value.toUpperCase();
+              const { year: newY, month: newM } = parseMonthYear(newMonthYear);
+              
+              // Automatically sync all work item dates to the new month/year
+              const updatedWorkLogs = activeLog.workLogs.map(wl => {
+                if (wl.dateWorked) {
+                  const day = wl.dateWorked.split('-')[2] || '01';
+                  return {
+                    ...wl,
+                    dateWorked: `${newY}-${String(newM).padStart(2, '0')}-${day}`
+                  };
+                }
+                return wl;
+              });
+              
+              updateActiveLog({ 
+                monthYear: newMonthYear,
+                workLogs: updatedWorkLogs
+              });
+            }}
             placeholder="MAY 2026"
           /></h2>
           <div className="summary-stats">
@@ -785,7 +866,7 @@ function App() {
               <span>Transferred:</span>
               <span className="stat-val">${totalTransferred.toFixed(2)}</span>
             </div>
-            <div className="stat-row" style={{borderTop: '2px solid #000', paddingTop: '0.5rem', marginTop: '0.25rem'}}>
+            <div className="stat-row" style={{borderTop: '2px solid var(--text-main)', paddingTop: '0.5rem', marginTop: '0.25rem'}}>
               <span>Outstanding:</span>
               <span className="stat-val">
                 ${Math.max(0, totalEarnings - totalTransferred).toFixed(2)}
@@ -805,7 +886,6 @@ function App() {
               <div>Time</div>
               <div>Rate</div>
               <div>Total</div>
-              <div>Cash-Out</div>
               <div>Status</div>
               <div className="no-print"></div>
             </div>
@@ -813,11 +893,41 @@ function App() {
             {activeLog.workLogs.map((item) => (
               <div key={item.id} className="wl-row">
                 <div>
-                  <input 
-                    type="date"
-                    value={item.dateWorked}
-                    onChange={(e) => updateWorkLogItem(item.id, { dateWorked: e.target.value })}
-                  />
+                  {(() => {
+                    const { year, month } = parseMonthYear(activeLog.monthYear);
+                    const monthNamesShort = ["Jan", "Feb", "Mar", "Apr", "May", "Jun", "Jul", "Aug", "Sep", "Oct", "Nov", "Dec"];
+                    return (
+                      <div style={{ display: 'flex', gap: '4px', alignItems: 'center' }}>
+                        <span style={{ fontSize: '0.8rem', color: 'var(--text-muted)', fontWeight: 700 }}>
+                          {monthNamesShort[month - 1] || 'Date'}
+                        </span>
+                        <input 
+                          type="number"
+                          value={item.dateWorked ? parseInt(item.dateWorked.split('-')[2], 10) : ''}
+                          onChange={(e) => {
+                            const valStr = e.target.value;
+                            if (valStr === '') {
+                              updateWorkLogItem(item.id, { dateWorked: '' });
+                              return;
+                            }
+                            let dayVal = parseInt(valStr, 10);
+                            if (isNaN(dayVal)) return;
+                            
+                            const maxDays = getDaysInMonth(year, month);
+                            if (dayVal < 1) dayVal = 1;
+                            if (dayVal > maxDays) dayVal = maxDays;
+                            
+                            const newDateStr = `${year}-${String(month).padStart(2, '0')}-${String(dayVal).padStart(2, '0')}`;
+                            updateWorkLogItem(item.id, { dateWorked: newDateStr });
+                          }}
+                          min="1"
+                          max={getDaysInMonth(year, month)}
+                          style={{ width: '38px', padding: '2px', fontSize: '0.82rem', textAlign: 'center' }}
+                          placeholder="DD"
+                        />
+                      </div>
+                    );
+                  })()}
                 </div>
                 <div>
                   <select 
@@ -828,12 +938,12 @@ function App() {
                   </select>
                 </div>
                 <div>
-                  <TextareaAutosize 
+                  <textarea 
                     value={item.projectName}
                     onChange={(e) => updateWorkLogItem(item.id, { projectName: e.target.value })}
                     placeholder="Project name"
-                    minRows={1}
-                    className="auto-resize-textarea"
+                    className="task-name-input"
+                    rows={2}
                   />
                 </div>
                 <div>
@@ -901,13 +1011,6 @@ function App() {
                       min="0" step="any" style={{padding: '2px', fontSize: '0.75rem', width: '60px'}}
                     />
                   </div>
-                </div>
-                <div>
-                  <input 
-                    type="date"
-                    value={item.cashOutDate}
-                    onChange={(e) => updateWorkLogItem(item.id, { cashOutDate: e.target.value })}
-                  />
                 </div>
                 <div>
                   <select 
@@ -1020,8 +1123,8 @@ function App() {
         </div>
 
       </div>
-
     </div>
+  </div>
   );
 }
 

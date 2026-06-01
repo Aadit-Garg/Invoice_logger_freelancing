@@ -1,6 +1,7 @@
 import React, { useState } from 'react';
 import { signInWithEmailAndPassword, createUserWithEmailAndPassword, GoogleAuthProvider, signInWithPopup } from 'firebase/auth';
 import { auth } from './firebase';
+import { Mail, KeyRound, ShieldAlert, LogIn, UserPlus } from 'lucide-react';
 import './App.css';
 
 export default function Login() {
@@ -27,7 +28,15 @@ export default function Login() {
       }
     } catch (err) {
       console.error(err);
-      setError(err.message);
+      let msg = err.message;
+      if (msg.includes("auth/invalid-credential") || msg.includes("auth/wrong-password") || msg.includes("auth/user-not-found")) {
+        msg = "Invalid email or password.";
+      } else if (msg.includes("auth/weak-password")) {
+        msg = "Password should be at least 6 characters.";
+      } else if (msg.includes("auth/email-already-in-use")) {
+        msg = "This email is already registered.";
+      }
+      setError(msg);
     } finally {
       setLoading(false);
     }
@@ -52,70 +61,98 @@ export default function Login() {
   };
 
   return (
-    <div className="app-container" style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', minHeight: '100vh' }}>
-      <div className="brutalist-card" style={{ width: '100%', maxWidth: '400px', padding: '2rem' }}>
-        <h1 className="brutalist-title" style={{ fontSize: '2rem', marginBottom: '1.5rem', textAlign: 'center' }}>
-          {isLogin ? 'LOGIN_HQ' : 'REGISTER_HQ'}
+    <div className="login-page-container">
+      {/* Decorative Moving Ambient Glow */}
+      <div className="login-glow"></div>
+      
+      {/* Premium Glassmorphic Login Card */}
+      <div className="login-card">
+        <h1 className="login-logo">
+          {isLogin ? 'FREELANCE_HQ' : 'JOIN_HQ'}
         </h1>
+        <div className="login-subtitle">
+          {isLogin ? 'Secure Console Access' : 'Create Operator Profile'}
+        </div>
         
         {error && (
-          <div style={{ backgroundColor: '#fee2e2', color: '#b91c1c', padding: '1rem', border: '2px solid #b91c1c', marginBottom: '1rem', fontWeight: 'bold' }}>
-            {error}
+          <div className="login-error-container">
+            <ShieldAlert size={18} style={{ flexShrink: 0, marginTop: '2px' }} />
+            <span>{error}</span>
           </div>
         )}
 
-        <form onSubmit={handleSubmit} style={{ display: 'flex', flexDirection: 'column', gap: '1rem' }}>
-          <div>
-            <label style={{ display: 'block', fontWeight: 800, marginBottom: '0.5rem' }}>EMAIL</label>
-            <input 
-              type="email" 
-              className="inline-input" 
-              style={{ width: '100%', padding: '0.75rem', border: '2px solid #000' }}
-              value={email}
-              onChange={(e) => setEmail(e.target.value)}
-              required
-            />
+        <form onSubmit={handleSubmit}>
+          <div className="login-form-group">
+            <label>Email Address</label>
+            <div className="input-wrapper">
+              <Mail size={16} />
+              <input 
+                type="email" 
+                placeholder="operator@system.com"
+                value={email}
+                onChange={(e) => setEmail(e.target.value)}
+                required
+              />
+            </div>
           </div>
-          <div>
-            <label style={{ display: 'block', fontWeight: 800, marginBottom: '0.5rem' }}>PASSWORD</label>
-            <input 
-              type="password" 
-              className="inline-input" 
-              style={{ width: '100%', padding: '0.75rem', border: '2px solid #000' }}
-              value={password}
-              onChange={(e) => setPassword(e.target.value)}
-              required
-            />
+          
+          <div className="login-form-group">
+            <label>Secret Password</label>
+            <div className="input-wrapper">
+              <KeyRound size={16} />
+              <input 
+                type="password" 
+                placeholder="••••••••"
+                value={password}
+                onChange={(e) => setPassword(e.target.value)}
+                required
+              />
+            </div>
           </div>
+          
           <button 
             type="submit" 
             className="btn-primary" 
-            style={{ width: '100%', padding: '1rem', fontSize: '1.1rem', marginTop: '1rem' }}
+            style={{ width: '100%' }}
             disabled={loading}
           >
-            {loading ? 'PROCESSING...' : (isLogin ? 'ACCESS HQ' : 'CREATE ACCOUNT')}
+            {loading ? (
+              'AUTHORIZING...'
+            ) : isLogin ? (
+              <><LogIn size={16} /> ACCESS CONSOLE</>
+            ) : (
+              <><UserPlus size={16} /> INITIALIZE ACCOUNT</>
+            )}
           </button>
         </form>
 
-        <div style={{ marginTop: '1rem' }}>
+        <div className="login-divider">or connect via</div>
+
+        <div>
           <button 
             type="button" 
-            className="btn-secondary" 
-            style={{ width: '100%', padding: '1rem', fontSize: '1.1rem', backgroundColor: '#fef08a', color: '#854d0e', border: '2px solid #000' }}
+            className="google-btn"
             disabled={loading}
             onClick={handleGoogleSignIn}
           >
-            CONTINUE WITH GOOGLE
+            <svg version="1.1" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 48 48" style={{ width: '18px', height: '18px' }}>
+              <path fill="#EA4335" d="M24 9.5c3.54 0 6.71 1.22 9.21 3.6l6.85-6.85C35.9 2.38 30.47 0 24 0 14.62 0 6.51 5.38 2.56 13.22l7.98 6.19C12.43 13.72 17.74 9.5 24 9.5z"></path>
+              <path fill="#4285F4" d="M46.98 24.55c0-1.57-.15-3.09-.38-4.55H24v9.02h12.94c-.58 2.96-2.26 5.48-4.78 7.18l7.73 6c4.51-4.18 7.09-10.36 7.09-17.65z"></path>
+              <path fill="#FBBC05" d="M10.53 28.59c-.48-1.45-.76-2.99-.76-4.59s.27-3.14.76-4.59l-7.98-6.19C.92 16.46 0 20.12 0 24c0 3.88.92 7.54 2.56 10.78l7.97-6.19z"></path>
+              <path fill="#34A853" d="M24 48c6.48 0 11.93-2.13 15.89-5.81l-7.73-6c-2.15 1.45-4.92 2.3-8.16 2.3-6.26 0-11.57-4.22-13.47-9.91l-7.98 6.19C6.51 42.62 14.62 48 24 48z"></path>
+              <path fill="none" d="M0 0h48v48H0z"></path>
+            </svg>
+            Google Identity
           </button>
         </div>
 
-        <div style={{ marginTop: '1.5rem', textAlign: 'center' }}>
+        <div style={{ marginTop: '2rem', textAlign: 'center' }}>
           <button 
-            className="icon-only" 
-            style={{ color: '#2563eb', textDecoration: 'underline', fontSize: '0.9rem', fontWeight: 600 }}
+            type="button"
+            className="login-switch-btn"
             onClick={() => { setIsLogin(!isLogin); setError(''); }}
           >
-            {isLogin ? 'Need an account? Register ->' : '<- Back to Login'}
+            {isLogin ? 'Request Operator Profile →' : '← Back to Console Login'}
           </button>
         </div>
       </div>
