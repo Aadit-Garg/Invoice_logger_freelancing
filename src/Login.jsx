@@ -152,7 +152,7 @@ export default function Login() {
             className="login-switch-btn"
             onClick={() => { setIsLogin(!isLogin); setError(''); }}
           >
-            {isLogin ? 'Request Operator Profile →' : '← Back to Console Login'}
+            {isLogin ? 'Make Account →' : '← Back to Console Login'}
           </button>
         </div>
       </div>
