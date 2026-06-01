@@ -1133,3 +1133,200 @@ button:active {
   background: rgba(41, 151, 255, 0.08) !important;
 }
 
+/* ── Mobile Layout Optimization ── */
+@media (max-width: 768px) {
+  /* 1. Reset container & document padding for maximum screen usage */
+  .app-container {
+    padding: 0.75rem 0.5rem !important;
+  }
+  .log-document {
+    padding: 1.25rem 0.85rem !important;
+  }
+  .brutalist-title {
+    font-size: 1.85rem !important;
+    margin-bottom: 1.5rem !important;
+    padding-bottom: 1rem !important;
+  }
+
+  /* 2. Hide horizontal table headers on mobile */
+  .wl-header, .payout-header, .pending-header, .invoice-list-header {
+    display: none !important;
+  }
+
+  /* 3. Re-arrange row divs into clean, premium, vertical card layouts */
+  .wl-row, .payout-row, .pending-row {
+    display: grid !important;
+    grid-template-columns: repeat(2, 1fr) !important;
+    gap: 0.75rem 1rem !important;
+    padding: 1.25rem !important;
+    border: 1px solid var(--border-color) !important;
+    background: var(--surface-color) !important;
+    margin-bottom: 1rem !important;
+    position: relative !important;
+    border-radius: 0 !important; /* hard square Apple card */
+    box-shadow: var(--shadow-sm);
+  }
+
+  /* Ensure alternating backgrounds don't disrupt visual cards on mobile */
+  .wl-row:nth-of-type(even), .payout-row:nth-of-type(even), .pending-row:nth-of-type(even) {
+    background: var(--surface-color) !important;
+  }
+
+  /* Highlight on hover inside mobile cards is subtle */
+  .wl-row:hover, .payout-row:hover, .pending-row:hover {
+    background: var(--surface-color) !important;
+    border-color: var(--accent-color) !important;
+  }
+
+  /* 4. Let the main fields (Task Description, Transfer ID, Project / Amount) span the full width of the 2-column grid */
+  .wl-row > div[data-label="Task Description"],
+  .payout-row > div[data-label="Transfer ID"],
+  .pending-row > div[data-label="Project / Amount"] {
+    grid-column: span 2 !important;
+  }
+
+  /* 5. Dynamically inject clean, bold, uppercase labels above every field */
+  .wl-row > div[data-label]::before,
+  .payout-row > div[data-label]::before,
+  .pending-row > div[data-label]::before {
+    content: attr(data-label);
+    display: block;
+    font-size: 0.65rem;
+    font-weight: 700;
+    text-transform: uppercase;
+    color: var(--text-muted);
+    letter-spacing: 0.05em;
+    margin-bottom: 0.25rem;
+  }
+
+  /* 6. Positioning the trash button wrapper absolutely in the top-right corner of the card */
+  .wl-row > div.no-print,
+  .payout-row > div.no-print,
+  .pending-row > div.no-print {
+    position: absolute !important;
+    top: 8px !important;
+    right: 8px !important;
+    grid-column: auto !important;
+    z-index: 10;
+    margin: 0 !important;
+    padding: 0 !important;
+  }
+
+  /* Ensure the trash button fits nicely */
+  .wl-row > div.no-print button,
+  .payout-row > div.no-print button,
+  .pending-row > div.no-print button {
+    padding: 4px !important;
+    background: transparent !important;
+    box-shadow: none !important;
+    border: none !important;
+  }
+
+  /* 7. Ensure inputs, selects, textareas expand to 100% inside card cells */
+  .wl-row input, .wl-row select, .wl-row textarea,
+  .payout-row input, .payout-row select,
+  .pending-row select {
+    width: 100% !important;
+    max-width: 100% !important;
+  }
+
+  /* Inline textareas span properly */
+  .wl-row textarea.task-name-input {
+    height: auto !important;
+    min-height: 48px;
+  }
+
+  /* Reset layout of nested inline details */
+  .wl-row div[data-label="Time"] > div,
+  .wl-row div[data-label="Rate"] > div,
+  .wl-row div[data-label="Total"] > div,
+  .payout-row div[data-label="Amount"] > div {
+    width: 100% !important;
+    justify-content: flex-start !important;
+  }
+
+  .wl-row div[data-label="Time"] input,
+  .wl-row div[data-label="Rate"] input,
+  .wl-row div[data-label="Total"] input {
+    width: 100% !important;
+    flex-grow: 1;
+  }
+
+  /* 8. Make invoice list cards on dashboard highly readable on mobile */
+  .invoice-list-item {
+    grid-template-columns: 1fr 1fr !important;
+    gap: 0.5rem 1rem !important;
+    padding: 1.25rem !important;
+  }
+
+  .invoice-list-item > div:nth-child(1) { /* Month */
+    grid-column: span 2 !important;
+    font-size: 1.1rem !important;
+  }
+
+  .invoice-list-item > div:nth-child(2) { /* Platforms */
+    grid-column: span 2 !important;
+    font-size: 0.85rem !important;
+    color: var(--text-muted);
+  }
+
+  .invoice-list-item > div:nth-child(3) { /* Total Time */
+    font-size: 0.9rem !important;
+  }
+
+  .invoice-list-item > div:nth-child(4) { /* Earnings */
+    font-size: 0.95rem !important;
+    text-align: right !important;
+  }
+
+  .invoice-list-item > div:nth-child(5) { /* Chevron */
+    display: none !important; /* Hide chevron on mobile to preserve layout space */
+  }
+
+  /* 9. Stack dashboard stats-grid to be 2x2 or 1-column */
+  .ytd-stats-grid {
+    grid-template-columns: repeat(2, 1fr) !important;
+    gap: 1rem !important;
+  }
+
+  .ytd-banner {
+    padding: 1.5rem !important;
+  }
+
+  .ytd-header {
+    flex-direction: column;
+    align-items: flex-start;
+    gap: 0.75rem;
+  }
+
+  /* Tabs responsive display */
+  .tabs-container {
+    width: 100%;
+    display: flex;
+    overflow-x: auto;
+    white-space: nowrap;
+    border-radius: var(--radius-md) !important;
+  }
+
+  .tab {
+    flex: 1;
+    padding: 0.65rem 1rem;
+    font-size: 0.85rem;
+  }
+}
+
+@media (max-width: 480px) {
+  .ytd-stats-grid {
+    grid-template-columns: 1fr !important;
+  }
+  .wl-row, .payout-row, .pending-row {
+    grid-template-columns: 1fr !important;
+  }
+  .wl-row > div[data-label="Task Description"],
+  .payout-row > div[data-label="Transfer ID"],
+  .pending-row > div[data-label="Project / Amount"] {
+    grid-column: span 1 !important;
+  }
+}
+
+

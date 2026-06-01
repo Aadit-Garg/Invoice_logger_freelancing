@@ -697,17 +697,17 @@ function App() {
                   
                   {displayPendingTasks.map((item) => (
                     <div key={item.id} className="wl-row pending-row">
-                      <div style={{fontWeight: 800, color: 'var(--text-main)'}}>{item.logMonth.split(' ')[0]}</div>
-                      <div style={{color: 'var(--text-main)', fontWeight: 600}}>{item.dateWorked}</div>
-                      <div style={{color: 'var(--text-main)', fontWeight: 700}}>{item.platform}</div>
+                      <div data-label="Log" style={{fontWeight: 800, color: 'var(--text-main)'}}>{item.logMonth.split(' ')[0]}</div>
+                      <div data-label="Date" style={{color: 'var(--text-main)', fontWeight: 600}}>{item.dateWorked}</div>
+                      <div data-label="Platform" style={{color: 'var(--text-main)', fontWeight: 700}}>{item.platform}</div>
                       
-                      <div style={{display: 'flex', flexDirection: 'column', gap: '4px'}}>
+                      <div data-label="Project / Amount" style={{display: 'flex', flexDirection: 'column', gap: '4px'}}>
                         <div style={{color: 'var(--text-main)', fontSize: '0.95rem', fontWeight: 700}}>{item.projectName || 'Unnamed Project'}</div>
                         <div style={{fontSize: '0.85rem', color: 'var(--text-main)', fontWeight: 600}}>
                           {(!item.minutes || item.minutes === 0) ? 'Fixed Pay' : `${formatTime(item.minutes)} @ $${Number(item.hourlyRate || 0).toFixed(2)}/h`} = ${getEarnings(item).toFixed(2)}
                         </div>
                       </div>
-                      <div>
+                      <div data-label="Status">
                         <select 
                           className={`status-select status-${item.status.toLowerCase().replace(' ', '-')}`}
                           value={item.status}
@@ -719,7 +719,7 @@ function App() {
                           <option value="Quality Issue">Quality Issue</option>
                         </select>
                       </div>
-                      <div style={{textAlign: 'right'}}>
+                      <div className="no-print" style={{textAlign: 'right'}}>
                         <button className="icon-only" onClick={() => removeGlobalWorkLog(item.logId, item.id)}>
                           <Trash2 size={18} strokeWidth={2.5} />
                         </button>
@@ -877,7 +877,7 @@ function App() {
             
             {activeLog.workLogs.map((item) => (
               <div key={item.id} className="wl-row">
-                <div>
+                <div data-label="Date">
                   {(() => {
                     const { year, month } = parseMonthYear(activeLog.monthYear);
                     const monthNamesShort = ["Jan", "Feb", "Mar", "Apr", "May", "Jun", "Jul", "Aug", "Sep", "Oct", "Nov", "Dec"];
@@ -914,7 +914,7 @@ function App() {
                     );
                   })()}
                 </div>
-                <div>
+                <div data-label="Platform">
                   <select 
                     value={item.platform || 'DataAnnotation.tech'}
                     onChange={(e) => updateWorkLogItem(item.id, { platform: e.target.value })}
@@ -922,7 +922,7 @@ function App() {
                     {PLATFORMS.map(p => <option key={p} value={p}>{p}</option>)}
                   </select>
                 </div>
-                <div>
+                <div data-label="Task Description">
                   <textarea 
                     value={item.projectName}
                     onChange={(e) => updateWorkLogItem(item.id, { projectName: e.target.value })}
@@ -931,7 +931,7 @@ function App() {
                     rows={2}
                   />
                 </div>
-                <div>
+                <div data-label="Time">
                   <div style={{ display: 'flex', gap: '2px', alignItems: 'center' }}>
                     <input 
                       type="number" 
@@ -961,7 +961,7 @@ function App() {
                     /><span style={{fontSize: '0.7rem', fontWeight: 'bold'}}>m</span>
                   </div>
                 </div>
-                <div>
+                <div data-label="Rate">
                   <div className="input-with-prefix">
                     <span style={{fontSize: '0.75rem'}}>$</span>
                     <input 
@@ -979,7 +979,7 @@ function App() {
                     /><span style={{fontSize:'0.7rem', fontWeight:'bold'}}>/h</span>
                   </div>
                 </div>
-                <div>
+                <div data-label="Total">
                   <div className="input-with-prefix">
                     <span style={{fontSize: '0.75rem'}}>$</span>
                     <input 
@@ -997,7 +997,7 @@ function App() {
                     />
                   </div>
                 </div>
-                <div>
+                <div data-label="Status">
                   <select 
                     className={`status-select status-${item.status.toLowerCase().replace(' ', '-')}`}
                     value={item.status}
@@ -1050,7 +1050,7 @@ function App() {
               <div className="payout-list">
                 {activeLog.payouts.map((item) => (
                   <div key={item.id} className="payout-row">
-                    <div>
+                    <div data-label="Method">
                       <select 
                         value={item.method || 'PayPal'}
                         onChange={(e) => updatePayoutItem(item.id, 'method', e.target.value)}
@@ -1058,14 +1058,14 @@ function App() {
                         {PAYOUT_METHODS.map(m => <option key={m} value={m}>{m}</option>)}
                       </select>
                     </div>
-                    <div>
+                    <div data-label="Date">
                       <input 
                         type="date"
                         value={item.date}
                         onChange={(e) => updatePayoutItem(item.id, 'date', e.target.value)}
                       />
                     </div>
-                    <div>
+                    <div data-label="Amount">
                       <div className="input-with-prefix">
                         <span>$</span>
                         <input 
@@ -1076,7 +1076,7 @@ function App() {
                         />
                       </div>
                     </div>
-                    <div>
+                    <div data-label="Transfer ID">
                       <input 
                         value={item.transferId}
                         onChange={(e) => updatePayoutItem(item.id, 'transferId', e.target.value)}
