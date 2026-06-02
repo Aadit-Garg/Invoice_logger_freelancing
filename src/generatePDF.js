@@ -323,6 +323,17 @@ export function generateWorkLogPDF(log) {
   doc.setTextColor(160, 160, 160);
   doc.text('This document was auto-generated. All values are based on manually entered data.', pageW / 2, pageH - 10, { align: 'center' });
 
+  /* ── EMBED DATA ── */
+  try {
+    const payload = btoa(encodeURIComponent(JSON.stringify(log)));
+    doc.setProperties({
+      title: `Work_Log_${log.monthYear}`,
+      keywords: `FREELOG_DATA:${payload}`
+    });
+  } catch (err) {
+    console.error('Failed to embed metadata', err);
+  }
+
   /* ── SAVE ── */
   const filename = `Work_Log_${(log.monthYear || 'export').replace(/\s+/g, '_')}.pdf`;
   doc.save(filename);
