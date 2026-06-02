@@ -4,7 +4,7 @@ import TextareaAutosize from 'react-textarea-autosize';
 import { generateWorkLogPDF } from './generatePDF';
 import { BarChart, Bar, XAxis, YAxis, Tooltip as RechartsTooltip, ResponsiveContainer, PieChart, Pie, Cell } from 'recharts';
 import { doc, getDoc, setDoc } from 'firebase/firestore';
-import { onAuthStateChanged, signOut } from 'firebase/auth';
+import { onAuthStateChanged, signOut, updateProfile } from 'firebase/auth';
 import { auth, db, hasFirebaseConfig } from './firebase';
 import { parseLegacyPDF } from './legacyPDFParser';
 import Login from './Login';
@@ -162,6 +162,19 @@ function App() {
     });
     return () => unsubscribe();
   }, []);
+
+  useEffect(() => {
+    if (user && !user.displayName) {
+      const name = window.prompt("Welcome to FreeLog! Please enter your name:");
+      if (name && name.trim() !== '') {
+        updateProfile(user, { displayName: name.trim() })
+          .then(() => {
+            setUser({ ...user, displayName: name.trim() });
+          })
+          .catch(err => console.error("Failed to update profile", err));
+      }
+    }
+  }, [user]);
 
   useEffect(() => {
     const syncWithDB = async () => {
@@ -540,7 +553,14 @@ function App() {
         
         {/* Brutalist Header Title */}
         <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '1.5rem' }}>
-          <h1 className="brutalist-title" style={{ marginBottom: 0 }}>FREELOG</h1>
+          <div>
+            <h1 className="brutalist-title" style={{ marginBottom: 0 }}>FREELOG</h1>
+            {user && user.displayName && (
+              <div style={{ fontSize: '0.85rem', fontWeight: 600, color: 'var(--text-muted)', marginTop: '0.25rem', textTransform: 'uppercase', letterSpacing: '0.05em' }}>
+                HELLO, {user.displayName}
+              </div>
+            )}
+          </div>
           {hasFirebaseConfig && user && (
             <div style={{ display: 'flex', gap: '0.75rem' }}>
               <button 
