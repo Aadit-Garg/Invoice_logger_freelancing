@@ -132,28 +132,7 @@ function App() {
   const [user, setUser] = useState(null);
   const [authChecking, setAuthChecking] = useState(true);
   const [hasLoaded, setHasLoaded] = useState(false);
-  const [logs, setLogs] = useState(() => {
-    try {
-      const saved = localStorage.getItem('freelanceLogsMulti');
-      if (saved) {
-        let parsed = JSON.parse(saved);
-        if (parsed.length > 0) {
-          return parsed.map(log => ({
-            ...log,
-            workLogs: log.workLogs.map(wl => {
-              if (wl.hours !== undefined) {
-                const newWl = { ...wl, minutes: Math.round(wl.hours * 60) };
-                delete newWl.hours;
-                return newWl;
-              }
-              return wl;
-            })
-          }));
-        }
-      }
-    } catch (e) { console.error('Failed to parse local storage', e); }
-    return defaultData || [];
-  });
+  const [logs, setLogs] = useState([]);
 
   const availableYears = [...new Set(logs.map(l => l.taxYear))].sort().reverse();
   const [selectedYear, setSelectedYear] = useState(
@@ -197,18 +176,11 @@ function App() {
             setLogs(dbData);
           }
         } else {
-          // Migration: if DB is empty, pull from localStorage and save to DB
-          const saved = localStorage.getItem('freelanceLogsMulti');
-          if (saved) {
-            const parsedSaved = JSON.parse(saved);
-            if (parsedSaved.length > 0) {
-              await setDoc(userDocRef, { logs: parsedSaved });
-              console.log('Migrated localStorage to Firebase for user', user.uid);
-            }
-          }
+          // Initialize empty DB for new user
+          await setDoc(userDocRef, { logs: [] });
         }
       } catch (err) {
-        console.warn('Failed to sync with Firebase. Using localStorage.', err);
+        console.warn('Failed to sync with Firebase:', err);
       } finally {
         setHasLoaded(true);
       }
@@ -217,7 +189,6 @@ function App() {
   }, [user]);
 
   useEffect(() => {
-    localStorage.setItem('freelanceLogsMulti', JSON.stringify(logs));
     if (availableYears.length > 0 && !availableYears.includes(selectedYear)) {
       setSelectedYear(availableYears[0]);
     }
@@ -264,6 +235,15 @@ function App() {
     .filter(Boolean);
   
   displayPendingTasks.sort((a, b) => new Date(a.dateWorked) - new Date(b.dateWorked));
+
+  const handleLogout = async () => {
+    setLogs([]);
+    try {
+      await signOut(auth);
+    } catch (err) {
+      console.error('Logout failed:', err);
+    }
+  };
 
   const handleCreateNew = () => {
     const newLog = createNewLog();
@@ -513,7 +493,7 @@ function App() {
               <button 
                 className="icon-only"
                 style={{ background: 'var(--surface-color)', padding: '0.5rem', borderRadius: '12px', border: '1px solid var(--glass-border)', cursor: 'pointer', color: '#ef4444' }}
-                onClick={() => signOut(auth)}
+                onClick={handleLogout}
                 title="Logout"
               >
                 <LogOut size={20} />
